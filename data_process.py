@@ -183,10 +183,17 @@ class CNNDailyMailPreprocessor:
                 sample = dataset[split][0]
                 logger.info(f"    样本键：{list(sample.keys())}")
                 
+                # 原始 tokens (ID 列表)
+                input_tokens = sample['input_ids']
+                label_tokens = sample['labels']
+
                 # 解码第一个样本查看
-                input_text = self.tokenizer.decode(sample['input_ids'], skip_special_tokens=True)
-                label_text = self.tokenizer.decode(sample['labels'], skip_special_tokens=True)
+                input_text = self.tokenizer.decode(input_tokens, skip_special_tokens=True)
+                label_text = self.tokenizer.decode(label_tokens, skip_special_tokens=True)
                 
+                logger.info(f"    输入原始 Tokens : {input_tokens[:]}")
+                logger.info(f"    标签原始 Tokens : {label_tokens[:]}")              
+
                 logger.info(f"    输入文本 (前 100 字符): {input_text[:100]}...")
                 logger.info(f"    标签文本 (前 100 字符): {label_text[:100]}...")
 
