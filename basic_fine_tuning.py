@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 # os.makedirs("./logs", exist_ok=True)
 
 # 设置 TensorBoard 日志目录
-os.environ['TENSORBOARD_LOGGING_DIR'] = "./logs"
+# os.environ['TENSORBOARD_LOGGING_DIR'] = "./logs"
 
 # ==================== Configuration ====================
 MODEL_NAME = "facebook/bart-base"
@@ -59,6 +59,7 @@ lora_model.print_trainable_parameters()
 # Ensure pad_token_id is set correctly
 base_model.config.pad_token_id = tokenizer.pad_token_id
 base_model.config.decoder_start_token_id = tokenizer.bos_token_id
+
 lora_model.config.pad_token_id = tokenizer.pad_token_id
 lora_model.config.decoder_start_token_id = tokenizer.bos_token_id
 
@@ -77,9 +78,7 @@ test_tokenized_data = processed_datasets['test']
 test_tokenized_data = test_tokenized_data.shuffle(seed=seed).select(range(4))
 
 # ==================== Training Arguments ====================
-def training_args(logging_dir="./logs_base"):
-
-
+def training_args(logging_name="test"):
     return Seq2SeqTrainingArguments(
         output_dir="bart_cnndailymail_model",
         num_train_epochs=NUM_TRAIN_EPOCHS,
@@ -94,7 +93,7 @@ def training_args(logging_dir="./logs_base"):
         load_best_model_at_end=True,
         metric_for_best_model="rougeL",
         greater_is_better=True,
-        logging_dir=logging_dir,
+        logging_dir=f"./logs/{logging_name}",
         logging_strategy="steps",
         logging_steps=1,
         predict_with_generate=True,
@@ -139,12 +138,10 @@ def compute_metrics(eval_pred):
     return result
 
 # ==================== Initialize Trainer ====================
-os.makedirs("./logs_base", exist_ok=True)
-os.makedirs("./logs_lora", exist_ok=True)
 #LoRA
 trainer_lora = Seq2SeqTrainer(
     model=lora_model,
-    args=training_args(logging_dir="./logs_lora"),
+    args=training_args(logging_name="lora"),
     train_dataset=train_tokenized_data,
     eval_dataset=validation_tokenized_data,
     compute_metrics=compute_metrics,
@@ -153,7 +150,7 @@ trainer_lora = Seq2SeqTrainer(
 #base
 trainer_base = Seq2SeqTrainer(
     model=base_model,
-    args=training_args(logging_dir="./logs_base"),
+    args=training_args(logging_name="base"),
     train_dataset=train_tokenized_data,
     eval_dataset=validation_tokenized_data,
     compute_metrics=compute_metrics,
